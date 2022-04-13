@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,52 +29,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import android.util.Log
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.ImeAction
 import com.example.tmdb.R
-import com.example.tmdb.data.Screen
-import com.example.tmdb.data.defaultHome
-import com.example.tmdb.data.favoritesMap
-import com.example.tmdb.viewmodels.MainViewModel
 
 @ExperimentalMaterialApi
 @Composable
 fun HomeScreen(
     navController: NavController,
-//    homeViewModel: HomeViewModel? = null,
-    mainViewModel: MainViewModel = MainViewModel()
+    info: HomeScreenModel
 ) {
     val focusRequester = remember { FocusRequester() }
     val scaffoldState: ScaffoldState = rememberScaffoldState()
-
-    val searchWidgetState by mainViewModel.searchWidgetState
-    val searchTextState by mainViewModel.searchTextState
 
     val popularCategories = listOf("Streaming", "For TV", "For rent","In theaters")
     val freeToWatchCategories = listOf("Movies", "TV")
     val trendingCategories = listOf("Today", "This week")
 
-    var query = remember {mutableStateOf("")}
-
-    var popular = listOf<Int>()
-    var freeToWatch = listOf<Int>()
-    var trending = listOf<Int>()
-
-//    for (el in homeViewModel?.getPopularMovies()!!){
-//        popular = popular + el.image
-//    }
-//    for (el in homeViewModel?.getFreeToWatchMovies()!!){
-//        freeToWatch = freeToWatch + el.image
-//    }
-//    for (el in homeViewModel?.getTrendingMovies()!!){
-//        trending = trending + el.image
-//    }
+    var text = ""
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -81,24 +52,93 @@ fun HomeScreen(
             TopBarMain()
         },
         content = {
+//            Card(modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(20.dp), shape = RoundedCornerShape(50.dp),
+//                                backgroundColor = Color(0xFFDDDDDD)){
+//                Row() {
+//                    IconButton(onClick = { /*bruh*/}) {
+//                        Icon(
+//                            imageVector = Icons.Filled.Search,
+//                            modifier = Modifier,
+//                            contentDescription = "Search Bar"
+//                        )
+//                    }
+//                    Text(text = "Search...")
+//                }
+//            };
+//            Card(modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(20.dp), shape = RoundedCornerShape(50.dp),
+//                backgroundColor = Color(0xFFDDDDDD)){
+//                Row() {
+//                    IconButton(onClick = { /*bruh*/}) {
+//                        Icon(
+//                            imageVector = Icons.Filled.Search,
+//                            modifier = Modifier,
+//                            contentDescription = "Search Bar"
+//                        )
+//                    }
+//                    Text(text = "Search...")
+//                }
+//            }
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Spacer(modifier = Modifier.padding(vertical = 10.dp))
-                MainAppBar(
-                    searchWidgetState = searchWidgetState,
-                    searchTextState = searchTextState,
-                    onTextChange = {
-                        mainViewModel.updateSearchTextState(newValue = it)
+                Card(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp, bottom = 20.dp, top = 10.dp), shape = RoundedCornerShape(50.dp),
+                                backgroundColor = Color(0xFFDDDDDD)){
+
+                }
+
+            Card(modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, bottom = 10.dp), shape = RoundedCornerShape(50.dp),
+                backgroundColor = Color(0xFFEEEEEE)){
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    color = Color(0xFFEEEEEE),
+                    elevation = 0.dp
+                ) {
+                    TextField(value = text, onValueChange = {
+                        /*onlick*/
                     },
-                    onCloseClicked = {
-                        mainViewModel.updateSearchWidgetState(newValue = SearchWidgetState.CLOSED)
-                    },
-                    onSearchClicked = {
-                        Log.d("Searched Text", it)
-                    },
-                    onSearchTriggered = {
-                        mainViewModel.updateSearchWidgetState(newValue = SearchWidgetState.OPENED)
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(text = "Search...",
+                                modifier = Modifier.alpha(ContentAlpha.medium),
+                                color = Color.Black)
+                        },
+                        singleLine = true,
+                    leadingIcon = {
+                        IconButton(onClick = { /*bruh*/}) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                modifier = Modifier.alpha(ContentAlpha.medium),
+                                contentDescription = "Search Icon",
+                                tint = Color.Black
+                        )
                     }
-                )
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                                if(text.isNotEmpty()){
+//                                    onTextChange("")
+                                } else{
+//                                    onCloseClicked()
+                                }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close Icon",
+                                tint = Color.Gray
+                            )
+                        }
+                    })
+
+                }
+            }
 
                 SecondaryTitle(
                     text = "What's popular",
@@ -107,8 +147,7 @@ fun HomeScreen(
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(popularCategories)
-                ScrollableMovieRow(navController, defaultHome.popularTab, Screen.Movie.route)
-//                ScrollableMovieRow(navController, popular, Screen.Movie.route)
+                ScrollableMovieRow(navController, info.popularTab,Screen.Movie.route)
                 SecondaryTitle(
                     text = "Free to watch",
                     modifier = Modifier
@@ -116,8 +155,7 @@ fun HomeScreen(
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(freeToWatchCategories)
-                ScrollableMovieRow(navController, defaultHome.freetowatchTab, Screen.Movie.route)
-//                ScrollableMovieRow(navController, freeToWatch, Screen.Movie.route)
+                ScrollableMovieRow(navController, info.freetowatchTab,Screen.Movie.route)
                 SecondaryTitle(
                     text = "Trending",
                     modifier = Modifier
@@ -125,8 +163,7 @@ fun HomeScreen(
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(trendingCategories)
-                ScrollableMovieRow(navController, defaultHome.trendingTab, Screen.Movie.route)
-//                ScrollableMovieRow(navController, trending, Screen.Movie.route)
+                ScrollableMovieRow(navController, info.trendingTab,Screen.Movie.route)
                 Spacer(Modifier.height(60.dp))
             }
         },
@@ -134,141 +171,6 @@ fun HomeScreen(
             BottomBarMain("home", navController)
         }
     )
-}
-
-@Composable
-fun MainAppBar(
-    searchWidgetState: SearchWidgetState,
-    searchTextState: String,
-    onTextChange: (String) -> Unit,
-    onCloseClicked: () -> Unit,
-    onSearchClicked: (String) -> Unit,
-    onSearchTriggered: () -> Unit
-) {
-    when (searchWidgetState) {
-        SearchWidgetState.CLOSED -> {
-            SearchAppBar(
-                text = searchTextState,
-                onTextChange = onTextChange,
-                onCloseClicked = onCloseClicked,
-                onSearchClicked = onSearchClicked
-            )
-        }
-        SearchWidgetState.OPENED -> {
-            SearchAppBar(
-                text = searchTextState,
-                onTextChange = onTextChange,
-                onCloseClicked = onCloseClicked,
-                onSearchClicked = onSearchClicked
-            )
-        }
-    }
-}
-
-@Composable
-fun DefaultAppBar(onSearchClicked: () -> Unit) {
-    TopAppBar(
-        modifier = Modifier.padding(horizontal = 20.dp),
-        title = {
-            Text(
-                modifier = Modifier
-                    .alpha(ContentAlpha.medium),
-                text = "Click to browse movies, TV shows..",
-                color = Color.Gray,
-                fontSize = MaterialTheme.typography.subtitle1.fontSize
-            )
-        },
-        backgroundColor = Color.Transparent,
-        actions = {
-            IconButton(
-                onClick = { onSearchClicked() }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = "Search Icon",
-                    tint = Color(0xFF999999)
-                )
-            }
-        }
-    )
-}
-
-@Composable
-fun SearchAppBar(
-    text: String,
-    onTextChange: (String) -> Unit,
-    onCloseClicked: () -> Unit,
-    onSearchClicked: (String) -> Unit,
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(horizontal = 20.dp)
-            .clip(shape = RoundedCornerShape(10.dp)),
-        color = Color(0x77DDDDDD)
-    ) {
-        TextField(modifier = Modifier
-            .fillMaxWidth(),
-            value = text,
-            onValueChange = {
-                onTextChange(it)
-            },
-            placeholder = {
-                Text(
-                    modifier = Modifier
-                        .alpha(ContentAlpha.medium),
-                    text = "Search...",
-                    color = Color.Black
-                )
-            },
-            textStyle = TextStyle(
-                fontSize = MaterialTheme.typography.subtitle1.fontSize
-            ),
-            singleLine = true,
-            leadingIcon = {
-                IconButton(
-                    modifier = Modifier
-                        .alpha(ContentAlpha.medium),
-                    onClick = {}
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search Icon",
-                        tint = Color.Black
-                    )
-                }
-            },
-//            trailingIcon = {
-//                IconButton(
-//                    onClick = {
-//                        if (text.isNotEmpty()) {
-//                            onTextChange("")
-//                        } else {
-//                            onCloseClicked()
-//                        }
-//                    }
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.Default.Close,
-//                        contentDescription = "Close Icon",
-//                        tint = Color.Black
-//                    )
-//                }
-//            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    onSearchClicked(text)
-                }
-            ),
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
-                cursorColor = Color.Black.copy(alpha = ContentAlpha.medium)
-            ))
-    }
 }
 
 @Composable
@@ -321,7 +223,7 @@ fun SubCategories(
                             if (text != selectedOption) {
                                 Color.White
                             } else {
-                                Color(0x77DDDDDD)
+                                Color(0x22020202)
                             }
                         )
                         .padding(
@@ -343,7 +245,7 @@ fun TopBarMain(){
             Box(modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center) {
                 Image(
-                    painter = painterResource(id = R.drawable.title),
+                    painter = painterResource(id = com.example.tmdb.ui.theme.titleImage),
                     contentDescription = "Title",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.height(35.dp)
@@ -558,5 +460,5 @@ fun CategoryButton(text: String, section: List<Int>, active: Int) {
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(rememberNavController())
+    HomeScreen(rememberNavController(), defaultHome)
 }

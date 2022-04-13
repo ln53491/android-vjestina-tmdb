@@ -8,29 +8,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.tmdb.data.Screen
-import com.example.tmdb.repository.defaultMovie
-import com.example.tmdb.screens.FavoritesScreen
 
 @RequiresApi(Build.VERSION_CODES.N)
 @OptIn(ExperimentalMaterialApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun Navigation(
-    preview: Boolean = false,
-//    homeViewModel: HomeViewModel,
-//    favoritesViewModel: FavoritesViewModel,
-//    movieViewModel: MovieViewModel
-){
+fun Navigation(preview: Boolean = false){
     val navController = rememberNavController()
     if (preview) {
-//        HomeScreen(navController, homeViewModel)
-        HomeScreen(navController = navController)
+        HomeScreen(navController, defaultHome)
     } else {
         NavHost(navController = navController, startDestination = Screen.Home.route){
 
             composable(route = Screen.Home.route){
-//                HomeScreen(navController = navController, homeViewModel)
-                HomeScreen(navController = navController)
+                HomeScreen(navController = navController, defaultHome)
             }
             composable(route = Screen.Favorites.route){
                 FavoritesScreen(navController = navController)
