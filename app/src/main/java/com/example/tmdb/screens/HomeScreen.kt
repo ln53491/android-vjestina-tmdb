@@ -1,4 +1,4 @@
-package com.example.tmdb.ui.theme
+package com.example.tmdb.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -40,6 +40,7 @@ import com.example.tmdb.R
 import com.example.tmdb.data.Screen
 import com.example.tmdb.data.defaultHome
 import com.example.tmdb.data.favoritesMap
+import com.example.tmdb.ui.theme.SearchWidgetState
 import com.example.tmdb.viewmodels.MainViewModel
 
 @ExperimentalMaterialApi
