@@ -1,4 +1,4 @@
-package com.example.tmdb.ui.theme
+package com.example.tmdb.screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -6,11 +6,14 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.tmdb.data.Screen
+import com.example.tmdb.repository.MovieScreenModel
 import com.example.tmdb.repository.defaultMovie
 import com.example.tmdb.screens.FavoritesScreen
+import com.example.tmdb.viewmodels.MainViewModel
 
 @RequiresApi(Build.VERSION_CODES.N)
 @OptIn(ExperimentalMaterialApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
