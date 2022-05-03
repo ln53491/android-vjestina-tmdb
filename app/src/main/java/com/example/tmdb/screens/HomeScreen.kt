@@ -37,11 +37,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import com.example.tmdb.R
-import com.example.tmdb.data.Screen
+import com.example.tmdb.ui.theme.Screen
 import com.example.tmdb.data.defaultHome
 import com.example.tmdb.data.favoritesMap
 import com.example.tmdb.ui.theme.SearchWidgetState
-import com.example.tmdb.viewmodels.MainViewModel
+import com.example.tmdb.MainViewModel
 
 @ExperimentalMaterialApi
 @Composable

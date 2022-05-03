@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.tmdb.R
-import com.example.tmdb.data.Screen
+import com.example.tmdb.ui.theme.Screen
 import com.example.tmdb.data.favoritesMap
 import com.example.tmdb.repository.MovieScreenModel
 import com.example.tmdb.repository.defaultMovie

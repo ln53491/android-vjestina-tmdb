@@ -15,8 +15,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.tmdb.data.Screen
-import com.example.tmdb.data.favoritesMap
+import com.example.tmdb.ui.theme.Screen
 import java.lang.Integer.max
 
 
