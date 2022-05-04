@@ -5,47 +5,42 @@ import kotlinx.coroutines.flow.*
 
 interface MovieRepository {
 
-    //u sklopu izvedbe "lokalne" baze podataka bez zahtjeva za Flow s API-ja,
-    //sve funkcije vraćaju obične liste (do daljnjega)
-    fun getPopularMovies(): List<Movie>
-    fun getFreeToWatchMovies(): List<Movie>
-    fun getTrendingMovies(): List<Movie>
-    fun getFavoriteMovies(): List<Movie>
-    fun getFavoriteById(id: Int): Movie
-    fun setFavorite(id: Int)
-    fun removeFavorite(id: Int)
+    suspend fun getPopularMovies(): Flow<List<Movie>>
+    suspend fun getFreeToWatchMovies(): Flow<List<Movie>>
+    suspend fun getTrendingMovies(): Flow<List<Movie>>
+    suspend fun getFavoriteMovies(): Flow<MutableList<Movie>>
+    suspend fun setFavorite(movie: Movie)
+    suspend fun removeFavorite(movie: Movie)
 }
 
 internal class MovieRepositoryImpl(
     private val movieApi: MovieApi
 ): MovieRepository {
 
-    override fun getPopularMovies(): List<Movie> {
-        return movieApi.getPopularMovies().getList()
+    private val database: MovieDatabase = MovieDatabase()
+
+    override suspend fun getPopularMovies() : Flow<List<Movie>> = flow {
+        emit(movieApi.getPopularMovies())
     }
 
-    override fun getFreeToWatchMovies(): List<Movie> {
-        return movieApi.getFreeToWatchMovies().getList()
+    override suspend fun getFreeToWatchMovies() : Flow<List<Movie>> = flow {
+        emit(movieApi.getFreeToWatchMovies())
     }
 
-    override fun getTrendingMovies(): List<Movie> {
-        return movieApi.getTrendingMovies().getList()
+    override suspend fun getTrendingMovies() : Flow<List<Movie>> = flow {
+        emit(movieApi.getTrendingMovies())
     }
 
-    override fun getFavoriteMovies(): List<Movie> {
-        return movieApi.getFavoriteMovies().getList()
+    override suspend fun getFavoriteMovies(): Flow<MutableList<Movie>> = flow {
+        emit(database.favorites)
     }
 
-    override fun getFavoriteById(id: Int): Movie {
-        return movieApi.getFavoriteById(id = id)
+    override suspend fun setFavorite(movie: Movie){
+        database.setFavorite(movie)
     }
 
-    override fun setFavorite(id: Int) {
-        return movieApi.setFavorite(id = id)
-    }
-
-    override fun removeFavorite(id: Int) {
-        return movieApi.removeFavorite(id = id)
+    override suspend fun removeFavorite(movie: Movie){
+        database.removeFavorite(movie)
     }
 }
 

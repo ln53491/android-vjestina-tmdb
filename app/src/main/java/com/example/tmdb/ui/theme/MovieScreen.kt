@@ -29,18 +29,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.tmdb.ui.theme.Screen
 import com.example.tmdb.repository.MovieScreenModel
 import com.example.tmdb.repository.defaultMovie
+import com.example.tmdb.screens.SimpleFlowRow
 
 
 @OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun MovieScreen(
-    navController: NavController,
     info: MovieScreenModel
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -179,9 +177,9 @@ fun MovieScreen(
                         },
                         divider = { Divider(thickness = 0.dp) }
                     ) {
-                        for(item in info.recommendations){
-                            MovieCardFinal(item, favoritesMap.getValue(item), Screen.Movie.route, navController)
-                        }
+//                        for(item in info.recommendations){
+//                            MovieCardFinal(item, favoritesMap.getValue(item), Screen.MovieScreen)
+//                        }
                     }
                     Spacer(Modifier.height(80.dp))
 
@@ -189,7 +187,7 @@ fun MovieScreen(
 
         },
         bottomBar = {
-            BottomBarMain("movie", navController)
+            BottomBarMain("movie")
         }
     )
 }
@@ -457,11 +455,4 @@ fun MovieInfoBar(
             }
         }
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.N)
-@Preview
-@Composable
-fun MovieScreenPreview() {
-    MovieScreen(rememberNavController(), defaultMovie)
 }

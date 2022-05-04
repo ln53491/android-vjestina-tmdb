@@ -7,11 +7,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -23,27 +18,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import com.example.tmdb.R
-import com.example.tmdb.ui.theme.Screen
+import com.example.tmdb.repository.Movie
+import kotlinx.coroutines.runBlocking
 
 @ExperimentalMaterialApi
 @Composable
 fun HomeScreen(
-    navController: NavController,
-//    homeViewModel: HomeViewModel? = null,
+    homeViewModel: HomeViewModel,
+    favoritesViewModel: FavoritesViewModel,
     mainViewModel: MainViewModel = MainViewModel()
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -58,19 +52,35 @@ fun HomeScreen(
 
     var query = remember {mutableStateOf("")}
 
+    var popularMovies = homeViewModel?.popularMovies?.collectAsState(initial = emptyList())?.value
+    var freeToWatchMovies = homeViewModel?.freeToWatchMovies?.collectAsState(initial = emptyList())?.value
+    var trendingMovies = homeViewModel?.trendingMovies?.collectAsState(initial = emptyList())?.value
+    var favoriteMovies = favoritesViewModel.moviesFavorite.collectAsState(initial = emptyList()).value
+
+    var allMovies : MutableList<Movie> = ArrayList()
+    allMovies.addAll(popularMovies)
+    allMovies.addAll(freeToWatchMovies)
+    allMovies.addAll(trendingMovies)
+
     var popular = listOf<Int>()
     var freeToWatch = listOf<Int>()
     var trending = listOf<Int>()
 
-//    for (el in homeViewModel?.getPopularMovies()!!){
-//        popular = popular + el.image
-//    }
-//    for (el in homeViewModel?.getFreeToWatchMovies()!!){
-//        freeToWatch = freeToWatch + el.image
-//    }
-//    for (el in homeViewModel?.getTrendingMovies()!!){
-//        trending = trending + el.image
-//    }
+    if (popularMovies != null) {
+        for (el in popularMovies){
+            popular = popular + el.image
+        }
+    }
+    if (freeToWatchMovies != null) {
+        for (el in freeToWatchMovies){
+            freeToWatch = freeToWatch + el.image
+        }
+    }
+    if (trendingMovies != null) {
+        for (el in trendingMovies){
+            trending = trending + el.image
+        }
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -104,8 +114,7 @@ fun HomeScreen(
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(popularCategories)
-                ScrollableMovieRow(navController, defaultHome.popularTab, Screen.Movie.route)
-//                ScrollableMovieRow(navController, popular, Screen.Movie.route)
+                ScrollableMovieRow(popularMovies, favoriteMovies,favoritesViewModel, Screen.MovieScreen, allMovies)
                 SecondaryTitle(
                     text = "Free to watch",
                     modifier = Modifier
@@ -113,8 +122,7 @@ fun HomeScreen(
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(freeToWatchCategories)
-                ScrollableMovieRow(navController, defaultHome.freetowatchTab, Screen.Movie.route)
-//                ScrollableMovieRow(navController, freeToWatch, Screen.Movie.route)
+                ScrollableMovieRow(freeToWatchMovies, favoriteMovies, favoritesViewModel, Screen.MovieScreen, allMovies)
                 SecondaryTitle(
                     text = "Trending",
                     modifier = Modifier
@@ -122,13 +130,12 @@ fun HomeScreen(
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(trendingCategories)
-                ScrollableMovieRow(navController, defaultHome.trendingTab, Screen.Movie.route)
-//                ScrollableMovieRow(navController, trending, Screen.Movie.route)
+                ScrollableMovieRow(trendingMovies, favoriteMovies, favoritesViewModel, Screen.MovieScreen, allMovies)
                 Spacer(Modifier.height(60.dp))
             }
         },
         bottomBar = {
-            BottomBarMain("home", navController)
+            BottomBarMain("home")
         }
     )
 }
@@ -352,14 +359,15 @@ fun TopBarMain(){
 
 @Composable
 fun BottomBarMain(
-    screen: String,
-    navController: NavController
+    screen: String
 ){
     BottomAppBar(backgroundColor = Color(0xFFDDDDDD)) {
         Row(modifier = Modifier
             .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center) {
-            IconButton(onClick = {navController.navigate(Screen.Home.route)}, Modifier.padding(horizontal = 50.dp)) {
+            IconButton(
+                onClick = {Navigator.navigateTo(Screen.HomeScreen)},
+                Modifier.padding(horizontal = 50.dp)) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -379,7 +387,7 @@ fun BottomBarMain(
                 }
             };
 
-            IconButton(onClick = {navController.navigate(Screen.Favorites.route)}, Modifier.padding(horizontal = 50.dp)) {
+            IconButton(onClick = {Navigator.navigateTo(Screen.FavoritesScreen)}, Modifier.padding(horizontal = 50.dp)) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -419,10 +427,19 @@ fun SecondaryTitle(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ScrollableMovieRow(
-    navController: NavController,
-    movieList: List<Int>,
-    defaultMovieRoute: String
+    movieList: List<Movie>,
+    favorites: List<Movie>,
+    favoritesViewModel: FavoritesViewModel,
+    defaultMovieRoute: Screen,
+    allMovies: MutableList<Movie>
 ){
+    var favs = listOf<Int>()
+    if (favorites != null) {
+        for (el in favorites){
+            favs = favs + el.id
+        }
+    }
+
     ScrollableTabRow(
         backgroundColor = Color.White,
         modifier = Modifier
@@ -435,7 +452,12 @@ fun ScrollableMovieRow(
         divider = { Divider(thickness = 0.dp) }
     ) {
         for (item in movieList) {
-            MovieCardFinal(item, favoritesMap.getValue(item),defaultMovieRoute, navController)
+            if (item.id in favs){
+                MovieCardFinal(item.image, true, defaultMovieRoute, favoritesViewModel, allMovies, item.id)
+            }
+            else{
+                MovieCardFinal(item.image, false, defaultMovieRoute, favoritesViewModel, allMovies, item.id)
+            }
         }
     }
 }
@@ -447,8 +469,10 @@ fun MovieCard(
     contentDescription: String,
     modifier: Modifier = Modifier,
     favorite: Boolean,
-    route: String,
-    navController: NavController
+    route: Screen,
+    favoritesViewModel: FavoritesViewModel,
+    allMovies: MutableList<Movie>,
+    movieId: Int
 ){
     Card(
         modifier = modifier
@@ -465,9 +489,7 @@ fun MovieCard(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(onClick = {
-                        if (route.isNotBlank()) {
-                            navController.navigate(route)
-                        }
+                            Navigator.navigateTo(Screen.MovieScreen)
                     }))
             Box(modifier = Modifier
                 .fillMaxSize()
@@ -480,7 +502,23 @@ fun MovieCard(
                 FloatingActionButton(
                     onClick = {
                         iconState = !iconState
-                        favoritesMap.put(id, !favoritesMap.get(id)!!)
+                        if (iconState) {
+                            runBlocking<Unit> {
+                                for(el in allMovies){
+                                    if(el.id == movieId){
+                                        favoritesViewModel.setFavorite(el)
+                                    }
+                                }
+                            }
+                        } else {
+                            runBlocking<Unit> {
+                                for(el in allMovies){
+                                    if(el.id == movieId){
+                                        favoritesViewModel.removeFromFavorites(el)
+                                    }
+                                }
+                            }
+                        }
                     },
                     contentColor = Color(0xFFFFFFFF),
                     backgroundColor = Color(0x33DDDDDD),
@@ -507,8 +545,10 @@ fun MovieCard(
 fun MovieCardFinal(
     id: Int,
     favorite: Boolean,
-    route: String = "",
-    navController: NavController = rememberNavController()
+    route: Screen,
+    favoritesViewModel: FavoritesViewModel,
+    allMovies: MutableList<Movie>,
+    movieId : Int
 ){
     Box(
         modifier = Modifier
@@ -519,7 +559,9 @@ fun MovieCardFinal(
             contentDescription = "Movie Image",
             favorite = favorite,
             route = route,
-            navController = navController
+            favoritesViewModel = favoritesViewModel,
+            allMovies = allMovies,
+            movieId = movieId
         )
     }
 }
@@ -551,15 +593,15 @@ fun CategoryButton(text: String, section: List<Int>, active: Int) {
 }
 
 
-@ExperimentalMaterialApi
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(rememberNavController())
-}
-
-@Preview
-@Composable
-fun SecondaryPreview(){
-    SecondaryTitle(text = "gfggjhgjhgjh", modifier = Modifier)
-}
+////@ExperimentalMaterialApi
+////@Preview
+////@Composable
+////fun HomeScreenPreview() {
+////    HomeScreen(rememberNavController())
+////}
+//
+//@Preview
+//@Composable
+//fun SecondaryPreview(){
+//    SecondaryTitle(text = "gfggjhgjhgjh", modifier = Modifier)
+//}

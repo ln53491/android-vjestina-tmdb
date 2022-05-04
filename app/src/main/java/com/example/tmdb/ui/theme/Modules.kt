@@ -1,12 +1,14 @@
-package com.example.tmdb.repository
+package com.example.tmdb.ui.theme
 
 import org.koin.androidx.compose.viewModel
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.tmdb.viewmodels.FavoritesViewModel
-import com.example.tmdb.viewmodels.HomeViewModel
-import com.example.tmdb.viewmodels.MovieViewModel
+import androidx.room.Database
+import com.example.tmdb.repository.MovieApiImpl
+import com.example.tmdb.repository.MovieDatabase
+import com.example.tmdb.repository.MovieRepository
+import com.example.tmdb.repository.MovieRepositoryImpl
 import org.koin.androidx.viewmodel.dsl.viewModel
 
 val viewModelModule = module {
@@ -17,15 +19,16 @@ val viewModelModule = module {
     viewModel {
         FavoritesViewModel(get())
     }
-    viewModel {
-        MovieViewModel(get())
-    }
+
 }
 
 val repositoryModule = module {
-    single<MovieRepository> { MovieRepositoryImpl(get()) }
+    single<MovieRepository> {
+        MovieRepositoryImpl(MovieApiImpl())
+    }
+    single { MovieDatabase() }
 }
 
-val apiModule = module {
-    single<MovieApi> { MovieApiImpl() }
-}
+//val apiModule = module {
+//    single { MovieApiImpl() }
+//}
