@@ -1,5 +1,7 @@
 package com.example.tmdb.repository
 
+import io.ktor.http.*
+
 data class Movie(
     val id: Int,
     var image: Int,
@@ -9,6 +11,16 @@ data class Movie(
     var favorite: Boolean = false,
     var movieScreenModel: MovieScreenModel
 )
+
+data class MovieNew(
+    val id: Int,
+    val title: String,
+    val overview: String,
+    val imageUrl: String?,
+    val isFavorite: Boolean
+)
+
+
 
 data class MovieScreenModel(
     val title: String,

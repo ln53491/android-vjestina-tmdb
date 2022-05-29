@@ -27,7 +27,7 @@ class MainActivity: ComponentActivity() {
             when (Navigator.currentScreen) {
                 Screen.HomeScreen -> HomeScreen(homeViewModel, favoritesViewModel)
                 Screen.FavoritesScreen -> FavoritesScreen(favoritesViewModel, homeViewModel)
-                Screen.MovieScreen -> MovieScreen(defaultMovie)
+                Screen.MovieScreen -> MovieScreen(homeViewModel, defaultMovie)
             }
         }
 

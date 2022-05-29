@@ -1,5 +1,6 @@
 package com.example.tmdb.ui.theme
 
+import android.content.ContentValues
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,9 +30,15 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.example.tmdb.R
-import com.example.tmdb.repository.Movie
+import com.example.tmdb.repository.MovieResponse
 import kotlinx.coroutines.runBlocking
+import coil.compose.rememberImagePainter
+
+var selectedMovie = 0
+var selectedMovieList = mutableListOf<MovieResponse>()
 
 @ExperimentalMaterialApi
 @Composable
@@ -52,33 +59,48 @@ fun HomeScreen(
 
     var query = remember {mutableStateOf("")}
 
-    var popularMovies = homeViewModel?.popularMovies?.collectAsState(initial = emptyList())?.value
-    var freeToWatchMovies = homeViewModel?.freeToWatchMovies?.collectAsState(initial = emptyList())?.value
-    var trendingMovies = homeViewModel?.trendingMovies?.collectAsState(initial = emptyList())?.value
-    var favoriteMovies = favoritesViewModel.moviesFavorite.collectAsState(initial = emptyList()).value
+    var popularMovies = homeViewModel?.popularMovies?.collectAsState(initial = emptyList())?.value.toMutableList()
+    var freeToWatchMovies = homeViewModel?.nowPlayingMovies?.collectAsState(initial = emptyList())?.value.toMutableList()
+    var trendingMovies = homeViewModel?.upcomingMovies?.collectAsState(initial = emptyList())?.value.toMutableList()
+    var topRatedMovies = homeViewModel?.topRatedMovies?.collectAsState(initial = emptyList())?.value.toMutableList()
+    var favoriteMovies = favoritesViewModel.moviesFavorite.collectAsState(initial = emptyList()).value.toMutableList()
 
-    var allMovies : MutableList<Movie> = ArrayList()
+    var allMovies : MutableList<MovieResponse> = ArrayList()
     allMovies.addAll(popularMovies)
-    allMovies.addAll(freeToWatchMovies)
-    allMovies.addAll(trendingMovies)
 
-    var popular = listOf<Int>()
-    var freeToWatch = listOf<Int>()
-    var trending = listOf<Int>()
+    for(movie in freeToWatchMovies){
+        if(movie !in allMovies){
+            allMovies.add(movie)
+        }
+    }
+    for(movie in trendingMovies){
+        if(movie !in allMovies){
+            allMovies.add(movie)
+        }
+    }
+    for(movie in topRatedMovies){
+        if(movie !in allMovies){
+            allMovies.add(movie)
+        }
+    }
+
+    var popular = listOf<String>()
+    var freeToWatch = listOf<String>()
+    var trending = listOf<String>()
 
     if (popularMovies != null) {
         for (el in popularMovies){
-            popular = popular + el.image
+            popular = popular + el.poster_path
         }
     }
     if (freeToWatchMovies != null) {
         for (el in freeToWatchMovies){
-            freeToWatch = freeToWatch + el.image
+            freeToWatch = freeToWatch + el.poster_path
         }
     }
     if (trendingMovies != null) {
         for (el in trendingMovies){
-            trending = trending + el.image
+            trending = trending + el.poster_path
         }
     }
 
@@ -108,7 +130,7 @@ fun HomeScreen(
                 )
 
                 SecondaryTitle(
-                    text = "What's popular",
+                    text = "Popular",
                     modifier = Modifier
                         .padding(start = 20.dp, top = 10.dp, bottom = 0.dp)
                         .align(alignment = Alignment.Start)
@@ -116,7 +138,7 @@ fun HomeScreen(
                 SubCategories(popularCategories)
                 ScrollableMovieRow(popularMovies, favoriteMovies,favoritesViewModel, Screen.MovieScreen, allMovies)
                 SecondaryTitle(
-                    text = "Free to watch",
+                    text = "Now Playing",
                     modifier = Modifier
                         .padding(start = 20.dp, top = 10.dp, bottom = 0.dp)
                         .align(alignment = Alignment.Start)
@@ -124,13 +146,20 @@ fun HomeScreen(
                 SubCategories(freeToWatchCategories)
                 ScrollableMovieRow(freeToWatchMovies, favoriteMovies, favoritesViewModel, Screen.MovieScreen, allMovies)
                 SecondaryTitle(
-                    text = "Trending",
+                    text = "Upcoming",
                     modifier = Modifier
                         .padding(start = 20.dp, top = 10.dp, bottom = 0.dp)
                         .align(alignment = Alignment.Start)
                 )
                 SubCategories(trendingCategories)
                 ScrollableMovieRow(trendingMovies, favoriteMovies, favoritesViewModel, Screen.MovieScreen, allMovies)
+                SecondaryTitle(
+                    text = "Top Rated",
+                    modifier = Modifier
+                        .padding(start = 20.dp, top = 10.dp, bottom = 0.dp)
+                        .align(alignment = Alignment.Start)
+                )
+                ScrollableMovieRow(topRatedMovies, favoriteMovies, favoritesViewModel, Screen.MovieScreen, allMovies)
                 Spacer(Modifier.height(60.dp))
             }
         },
@@ -427,11 +456,11 @@ fun SecondaryTitle(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ScrollableMovieRow(
-    movieList: List<Movie>,
-    favorites: List<Movie>,
+    movieList: List<MovieResponse>,
+    favorites: List<MovieResponse>,
     favoritesViewModel: FavoritesViewModel,
     defaultMovieRoute: Screen,
-    allMovies: MutableList<Movie>
+    allMovies: MutableList<MovieResponse>
 ){
     var favs = listOf<Int>()
     if (favorites != null) {
@@ -453,10 +482,10 @@ fun ScrollableMovieRow(
     ) {
         for (item in movieList) {
             if (item.id in favs){
-                MovieCardFinal(item.image, true, defaultMovieRoute, favoritesViewModel, allMovies, item.id)
+                MovieCardFinal(item.poster_path, true, defaultMovieRoute, favoritesViewModel, allMovies, item.id)
             }
             else{
-                MovieCardFinal(item.image, false, defaultMovieRoute, favoritesViewModel, allMovies, item.id)
+                MovieCardFinal(item.poster_path, false, defaultMovieRoute, favoritesViewModel, allMovies, item.id)
             }
         }
     }
@@ -465,13 +494,13 @@ fun ScrollableMovieRow(
 @ExperimentalMaterialApi
 @Composable
 fun MovieCard(
-    id: Int,
+    id: String,
     contentDescription: String,
     modifier: Modifier = Modifier,
     favorite: Boolean,
     route: Screen,
     favoritesViewModel: FavoritesViewModel,
-    allMovies: MutableList<Movie>,
+    allMovies: MutableList<MovieResponse>,
     movieId: Int
 ){
     Card(
@@ -481,15 +510,28 @@ fun MovieCard(
         shape = RoundedCornerShape(15.dp),
         elevation = 2.dp
     ) {
+        var favoriteMovies = favoritesViewModel.moviesFavorite.collectAsState(initial = emptyList()).value
+        var ids = mutableListOf<Int>()
+        for(movie in favoriteMovies){
+            ids.add(movie.id)
+        }
+
         Box() {
             Image(
-                painter = painterResource(id = id),
+                painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500" + id),
                 contentDescription = contentDescription,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(onClick = {
-                            Navigator.navigateTo(Screen.MovieScreen)
+                        selectedMovie = movieId
+                        for(mov in allMovies){
+                            if(mov.id == movieId){
+                                selectedMovieList.add(mov)
+                                selectedMovieList.set(0, mov)
+                            }
+                        }
+                        Navigator.navigateTo(Screen.MovieScreen)
                     }))
             Box(modifier = Modifier
                 .fillMaxSize()
@@ -506,7 +548,9 @@ fun MovieCard(
                             runBlocking<Unit> {
                                 for(el in allMovies){
                                     if(el.id == movieId){
-                                        favoritesViewModel.setFavorite(el)
+                                        if(el.id !in ids) {
+                                            favoritesViewModel.setFavorite(el)
+                                        }
                                     }
                                 }
                             }
@@ -514,7 +558,9 @@ fun MovieCard(
                             runBlocking<Unit> {
                                 for(el in allMovies){
                                     if(el.id == movieId){
-                                        favoritesViewModel.removeFromFavorites(el)
+                                        if(el.id in ids) {
+                                            favoritesViewModel.removeFromFavorites(el)
+                                        }
                                     }
                                 }
                             }
@@ -543,11 +589,11 @@ fun MovieCard(
 @ExperimentalMaterialApi
 @Composable
 fun MovieCardFinal(
-    id: Int,
+    id: String,
     favorite: Boolean,
     route: Screen,
     favoritesViewModel: FavoritesViewModel,
-    allMovies: MutableList<Movie>,
+    allMovies: MutableList<MovieResponse>,
     movieId : Int
 ){
     Box(

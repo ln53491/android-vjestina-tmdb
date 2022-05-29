@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.kapt'
+    id 'kotlinx-serialization'
 }
 
 android {
@@ -96,5 +97,17 @@ dependencies {
 
 // optional - Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:2.3.0"
+
+    def ktor_version = "1.6.4"
+
+    implementation "io.ktor:ktor-client-core:$ktor_version"
+    implementation "io.ktor:ktor-client-android:$ktor_version"
+    implementation "io.ktor:ktor-client-serialization:$ktor_version"
+    implementation "io.ktor:ktor-client-logging:$ktor_version"
+
+    implementation "io.coil-kt:coil-compose:2.1.0"
+
+    def serialization_version = '1.2.2'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$serialization_version"
 
 }

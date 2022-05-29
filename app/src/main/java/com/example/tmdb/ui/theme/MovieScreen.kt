@@ -1,6 +1,8 @@
 package com.example.tmdb.ui.theme
 
+import android.content.ContentValues
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
+import com.example.tmdb.repository.MovieResponse
 import com.example.tmdb.repository.MovieScreenModel
 import com.example.tmdb.repository.defaultMovie
 import com.example.tmdb.screens.SimpleFlowRow
@@ -39,11 +44,26 @@ import com.example.tmdb.screens.SimpleFlowRow
 @RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun MovieScreen(
+    homeViewModel: HomeViewModel,
     info: MovieScreenModel
 ) {
     val focusRequester = remember { FocusRequester() }
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     var tabIndex = 0
+
+    var popularMovies = homeViewModel?.popularMovies?.collectAsState(initial = emptyList())?.value
+    var freeToWatchMovies = homeViewModel?.nowPlayingMovies?.collectAsState(initial = emptyList())?.value
+    var trendingMovies = homeViewModel?.upcomingMovies?.collectAsState(initial = emptyList())?.value
+    var topRatedMovies = homeViewModel?.topRatedMovies?.collectAsState(initial = emptyList())?.value
+
+    var allMovies : MutableList<MovieResponse> = ArrayList()
+    allMovies.addAll(popularMovies)
+    allMovies.addAll(freeToWatchMovies)
+    allMovies.addAll(trendingMovies)
+    allMovies.addAll(topRatedMovies)
+
+
+    var movie = selectedMovieList[0]
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -56,14 +76,13 @@ fun MovieScreen(
                     .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally) {
                         MovieInfoBar(
-                            score = info.userScore,
-                            title = info.title,
-                            year = info.releaseYear,
-                            release = info.releaseDate,
-                            genres = info.genres,
-                            duration = info.duration,
-                            painter = painterResource(id = info.background),
-                            star = info.star
+                            score = movie.vote_average,
+                            title = movie.title,
+                            year = movie.release_date.substring(0,3).toInt(),
+                            release = movie.release_date,
+                            genres = movie.genre_ids.toString(),
+                            painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500" + movie.poster_path),
+                            star = 1
                         )
                     Text("Overview",
                         modifier = Modifier
@@ -74,7 +93,7 @@ fun MovieScreen(
                         color = Color(0xFF0B253F)
                     )
 
-                    Text(text = info.overview,
+                    Text(text = movie.overview,
                         modifier = Modifier
                             .padding(horizontal = 20.dp, vertical = 0.dp)
                             .align(alignment = Alignment.Start),
@@ -352,12 +371,11 @@ fun InfoRow(tags: List<Pair<String, String>>) {
 
 @Composable
 fun MovieInfoBar(
-    score: Int,
+    score: Float,
     title: String,
     year: Int,
     release: String,
     genres: String,
-    duration: String,
     painter: Painter,
     star: Int
 ){
@@ -424,7 +442,6 @@ fun MovieInfoBar(
                             fontWeight = FontWeight.Bold
                         )
                     ) {
-                        append("$duration")
                     }
                 }
                 )

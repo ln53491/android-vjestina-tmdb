@@ -5,30 +5,20 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.tmdb.ui.theme.Screen
 import com.example.tmdb.data.favoritesMap
-import com.example.tmdb.repository.Movie
+import com.example.tmdb.repository.MovieResponse
 import com.example.tmdb.ui.theme.*
 import java.lang.Integer.max
 
@@ -44,10 +34,10 @@ fun FavoritesScreen(
     val scaffoldState: ScaffoldState = rememberScaffoldState()
 
     var popularMovies = homeViewModel?.popularMovies?.collectAsState(initial = emptyList())?.value
-    var freeToWatchMovies = homeViewModel?.freeToWatchMovies?.collectAsState(initial = emptyList())?.value
-    var trendingMovies = homeViewModel?.trendingMovies?.collectAsState(initial = emptyList())?.value
+    var freeToWatchMovies = homeViewModel?.nowPlayingMovies?.collectAsState(initial = emptyList())?.value
+    var trendingMovies = homeViewModel?.upcomingMovies?.collectAsState(initial = emptyList())?.value
 
-    var allMovies : MutableList<Movie> = ArrayList()
+    var allMovies : MutableList<MovieResponse> = ArrayList()
     allMovies.addAll(popularMovies)
     allMovies.addAll(freeToWatchMovies)
     allMovies.addAll(trendingMovies)
@@ -92,9 +82,9 @@ fun FavoritesScreen(
 @RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun FavouritesRow(
-    favoriteMovies: List<Movie>,
+    favoriteMovies: List<MovieResponse>,
     favoritesViewModel: FavoritesViewModel,
-    allMovies: MutableList<Movie>,
+    allMovies: MutableList<MovieResponse>,
 ) {
     SimpleFlowRow(
         verticalGap = 15.dp,
@@ -103,7 +93,7 @@ fun FavouritesRow(
 //        modifier = Modifier.padding(20.dp)
     ) {
         for (tag in favoriteMovies) {
-            MovieCardFinal(id = tag.image, favorite = true, Screen.MovieScreen, favoritesViewModel, allMovies, tag.id)
+            MovieCardFinal(id = tag.poster_path, favorite = true, Screen.MovieScreen, favoritesViewModel, allMovies, tag.id)
         }
     }
 }
